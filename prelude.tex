@@ -1,0 +1,56 @@
+% mosttly stylistic stuff goes here 
+
+\titleformat{\title}
+  {\normalf ont\Large\sffamily\bfseries \titlerule}
+  {\thetitle}
+  {.5em}
+  {\MakeUppercase}
+  [\vspace{.5ex}\titlerule]
+
+
+\titleformat{\section}
+  {\normalfont\Large\sffamily\bfseries \titlerule}
+  {\thesection}
+  {.5em}
+  {\MakeUppercase}
+  [\vspace{.5ex}\titlerule]
+
+
+
+\titleformat{\subsection}
+  {\normalfont\normalsize\sffamily\bfseries}
+  {\thesubsection}
+  {.5em}
+  {\MakeUppercase}
+
+
+
+\newcommand\basicCodeStyle{\ttfamily\small}
+\newcommand\keywordCodeStyle{\bfseries}
+
+\lstset{
+  basicstyle=\basicCodeStyle,
+  keywordstyle=\keywordCodeStyle,
+  numberstyle=\scriptsize\sffamily,
+  commentstyle={\bfseries\textcolor{gray}},
+  tabsize=4,
+  captionpos=b,
+  frame=lines,
+%  numbers=left,
+  language=ML,
+%  xleftmargin=2em,
+%  framexleftmargin=1.5em,
+  backgroundcolor=\color[rgb]{1,0.98,.98},
+  breaklines=false,
+  breakautoindent=false,
+  postbreak=\space,
+  breakindent=5pt,
+  escapeinside={/*@}{@*/},
+  aboveskip=1em,
+  belowskip=0pt,
+  belowcaptionskip=0pt,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  mathescape=true
+}
+
