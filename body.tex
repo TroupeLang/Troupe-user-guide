@@ -405,8 +405,12 @@ branch that has been chosen here. Because, of the dynamic nature of type checkin
 we also carry the information about the chosen branch into the type label.
 
 \paragraph{Implicit flows and I/O}
-The implicit information flows are further propagated between processes,
-as one can see in this modification of the previous example.
+The implicit information flows are further propagated between processes. 
+In the mailbox, each message is additionally tagged with a label that 
+corresponds to the blocking level of the sender at the time when the message was sent.
+Troupe supports filtering messages based on these tags.
+In the following example, \code{rcvp} is a form of receive statement that selects messages
+where the pc-tag set to the provided label argument.
 
 \begin{lstlisting}
 let val x = 10 raisedTo {secret}
@@ -414,7 +418,7 @@ let val x = 10 raisedTo {secret}
     val _ = spawn ( fn () => if x > 0 
     							then send (p, 1) 
     							else send (p, 0) )
-in receive [ hn x => x ]
+in rcvp ({secret}, [ hn x => x ])
 end
 \end{lstlisting}
 \begin{verbatim}
@@ -566,8 +570,20 @@ Here, \code{tmp} is a fresh variable that is not part of the user program. Primi
 \code{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
 
 
+\subsection{Information flow control in I/O}
+\subsubsection{Generalized receive}
+Because receive operation changes the state of the mailbox, Troupe supports several forms 
+of receive statement that was introduced earlier in Section~\ref{sec:concurrency}. The most 
+general form for receiving is \code{rcv(lev1,lev2,auth,hns)}. Here, \code{lev1} and \code{lev2}
+indicate the to and from-levels of the pc-tags on the messages, and \code{auth} is the authority
+argument. 
 
 
+
+Note that if \code{lev1} and \code{lev2} coincide then the authority argument
+is not required. In such cases, one can use a special form of receive \code{rcvp}. 
+Finally, note that the \code{receive} operation we introduced earlier is equivalent to \code{rcvp}
+at the level of the current pc label.
 
 \section{Networking}
 \label{sec:network}
@@ -614,7 +630,16 @@ in receive [ hn  x => print x]
 end    
 \end{lstlisting}
 
+\subsubsection{Aliases}
+Aliases is a mechanism that allows us to avoid having hardcoded node identifiers in the source code. 
+The alias mechanism operates in the way of the traditional Unix hosts files.
+To use this mechanism, we need to provide the path to a special alias file that contains a mapping between
+alias strings and network identifiers. In the text of the program, an alias string must start with character~"@".
 
+
+\begin{verbatim}
+$TROUPE/rt/troupe out.js --aliases=<path_to_aliases_file>
+\end{verbatim}
 
 \subsection{Node trust levels}
 
@@ -623,7 +648,6 @@ information sent and received to other nodes is considered to be at level \lev{}
 We can increase trust in certain nodes by 
 passing a trust map file that include the identity of the nodes and their maximum
 trust level.
-
 
     
 \subsection{Remote spawning}
