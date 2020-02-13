@@ -570,20 +570,52 @@ Here, \code{tmp} is a fresh variable that is not part of the user program. Primi
 \code{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
 
 
-\subsection{Information flow control in I/O}
-\subsubsection{Generalized receive}
-Because receive operation changes the state of the mailbox, Troupe supports several forms 
-of receive statement that was introduced earlier in Section~\ref{sec:concurrency}. The most 
-general form for receiving is \code{rcv(lev1,lev2,auth,hns)}. Here, \code{lev1} and \code{lev2}
-indicate the to and from-levels of the pc-tags on the messages, and \code{auth} is the authority
-argument. 
+\subsection{Information flow control with I/O primitives}
+\subsubsection{Generalized receive and mailbox clearances}
+
+I/O operations such as send and receive introduce additional concerns w.r.t. 
+information flow control. In particular, because mailbox acts as a mutable state, an extra
+care needs to be taken to control information flows through the mailbox structure.
 
 
-
-Note that if \code{lev1} and \code{lev2} coincide then the authority argument
-is not required. In such cases, one can use a special form of receive \code{rcvp}. 
-Finally, note that the \code{receive} operation we introduced earlier is equivalent to \code{rcvp}
+Every message in a mailbox carries an extra label -- the blocking level of the sender.
+Receiving a value furthermore propagates the taint of the blocking level from the sender to the receiver. 
+In order to constrain a receive operation from an accidental raise of the blocking level, Troupe
+provides a general receive primitive in the form 
+\code{rcv(lev1,lev2,hns)}. Here, \code{lev1} and \code{lev2}
+indicate the to and from-levels of the pc-tags on the messages, and \code{hns} is the list of 
+handlers as before.
+The \code{receive} operation we introduced earlier is equivalent to \code{rcvp}
 at the level of the current pc label.
+
+While such a form of general receive over an interval of levels is useful, it is also too powerful 
+and needs to be further constrained. Consider the following snippet
+
+
+\begin{lstlisting}
+let val _ = if (secret) then rcv ({}, {alice}, [hn x => x] else ()
+in val x = rcv ({}, {}, [hn x => x ])
+end
+\end{lstlisting}
+
+Because the receive in the high branch is on an interval, the value of \code{x} may 
+depend on the secret value. In general, one can encode an entire secret in the structure 
+of the mailbox. To prevent such programs, Troupe provides a special notion of \emph{mailbox clearance}
+that constrains receives on an interval. The mailbox clearance is a proxy for an authority. 
+It can be raised using a dedicated command \code{raisembox (lev)} that returns a lowering
+capability and lowered with command \code{lowermbox(c, authority)}. 
+There are two main constraints related to the mailbox clearance.
+
+\begin{enumerate}
+    \item First, at the time of the receive on an interval $(\ell_1, \ell_2)$ under context $\mathit{pc}$ 
+    with mailbox clearance at $\ell_{\mathit{clear}}$ it must be that $\ell_2 \sqcup \mathit{pc} \sqsubseteq \ell_1 \sqcup \ell_{\mathit{clear}}$. 
+    This constraint ensures that the mailbox clearance is sufficient for the interval receives. When mailbox clearance is $\bot$ -- as it is in the beginning of the program -- this means that only point intervals of the form $(\ell, \ell)$ s.t. $\mathit{pc} \sqsubseteq \ell$ are allowed.
+
+    \item 
+\end{enumerate}
+
+
+
 
 \section{Networking}
 \label{sec:network}
