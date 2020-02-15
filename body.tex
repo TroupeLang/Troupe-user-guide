@@ -304,6 +304,10 @@ The evaluation of this program results in the output
 main thread finished with value: ()@{}%{}
 \end{verbatim}
 
+\subsection{Debugging concurrent programs}
+To help debugging concurrent programs, one can use a special primitive $\code{\_setProcessDebuggingName}$ that
+takes a string argument and uses that string when reporting errors in the process. By design, there is no mechanism
+for reading the process name other than causing an error; this prevents using process names to leak information.
 
 \section{Information flow control}
 \label{sec:infoflow}
@@ -571,6 +575,8 @@ Here, \code{tmp} is a fresh variable that is not part of the user program. Primi
 
 
 \subsection{Information flow control with I/O primitives}
+This section may be omitted upon first read as it has a number of information flow subtleties that 
+can be omitted when first starting to use the system.
 \subsubsection{Generalized receive and mailbox clearances}
 
 I/O operations such as send and receive introduce additional concerns w.r.t. 
@@ -604,14 +610,15 @@ of the mailbox. To prevent such programs, Troupe provides a special notion of \e
 that constrains receives on an interval. The mailbox clearance is a proxy for an authority. 
 It can be raised using a dedicated command \code{raisembox (lev)} that returns a lowering
 capability and lowered with command \code{lowermbox(c, authority)}. 
-There are two main constraints related to the mailbox clearance.
+There are a few constraints related to the mailbox clearance.
 
 \begin{enumerate}
-    \item First, at the time of the receive on an interval $(\ell_1, \ell_2)$ under context $\mathit{pc}$ 
-    with mailbox clearance at $\ell_{\mathit{clear}}$ it must be that $\ell_2 \sqcup \mathit{pc} \sqsubseteq \ell_1 \sqcup \ell_{\mathit{clear}}$. 
-    This constraint ensures that the mailbox clearance is sufficient for the interval receives. When mailbox clearance is $\bot$ -- as it is in the beginning of the program -- this means that only point intervals of the form $(\ell, \ell)$ s.t. $\mathit{pc} \sqsubseteq \ell$ are allowed.
+    \item In order to receive on an interval $(\ell_1, \ell_2)$ under $\mathit{pc}$ 
+    with mailbox clearance $\ell_{\mathit{clear}}$ it must hold that $\ell_2 \sqcup \mathit{pc} \sqsubseteq \ell_1 \sqcup \ell_{\mathit{clear}}$. 
+    This constraint ensures that the mailbox clearance is sufficient for the interval receives. When mailbox clearance is $\bot$ -- as it is in the beginning of the program -- only point intervals of the form $(\ell, \ell)$ where $\mathit{pc} \sqsubseteq \ell$ are allowed.
 
-    \item 
+    \item The $\mathit{pc}$-label of the program point where the mailbox clearance is raised affects the lower bound of the intervals. In particular, if the clearance is raised when the $\mathit{pc}$ counter is $\mathit{pc}_{\mathit{raise}}$, the mailbox structure cannot be influenced by receives that are not as restrictive as $\mathit{pc}_{\mathit{raise}}$; in other words: $ \mathit{pc}_\mathit{raise} \sqsubseteq \mathit{pc} \sqcap \ell_1$, where $\ell_1$ is the lower bound of the interval receive. 
+    \item If the process mailbox clearance is raised in a branch, it must be lowered back before reaching the join point of the branch.
 \end{enumerate}
 
 
@@ -752,6 +759,14 @@ end
     
 \end{description}
 
+\subsubsection{\code{lowermbox}}
+\begin{description}
+    \item [Description] Lowers the clearance of the current process' mailbox. 
+    \item [Arguments] A tuple of the raise capability and authority 
+    \item [Returns] Unit. 
+    \item [Failure behavior] Fails if the type of the argument is invalid (dynamic type checking). Fails if the authority is insufficient for this lowering, or the provided capability does not match the stack scoping discipline. 
+\end{description}
+
 
 \subsubsection{\code{mkuuid}}
 \begin{description}
@@ -832,6 +847,16 @@ enforcing runtime is the same.
 \end{description}
 
 
+\subsubsection{\code{\_setProcessDebuggingName}}
+\begin{description}
+    \item [Description] Sets the process name that is used in debugging.
+    \item [Argument] A string value.
+    \item [Returns] Unit.
+    \item [Failure behavior] Fails if the type of the argument is invalid (dynamic type checking).
+\end{description}
+
+
+
 \subsubsection{\code{sleep}}
 
 \begin{description}
@@ -863,6 +888,31 @@ Note that the function must be of the form \code{fn () => e}, i.e., it must take
     \item [Example usage] $\code{42\ raisedTo\ \{alice\}}$
 \end{description}
 
+\subsubsection{\code{raiseTrust}}
+\begin{description}
+    \item [Description] Dynamically raise the trust level of a node.
+    \item [Arguments] A triple of a node identifier, root-level authority, and the intended trust level.
+    \item [Returns] Unit.
+    \item [Failure behavior]. Fails if the argument type is invalid. Fails if the authority argument is not top.
+ Fails if the blocking level is not $\bot$.
+    \item [Example usage] $\code{raiseTrust("@alicescomputer", authority, \{alice\})}$
+\end{description}
+Note that the top-level authority is required because this is a privileged operation with system-wide consequences. 
+
+
+
+
+\subsubsection{\code{raisembox}}
+\begin{description}
+    \item [Description] Raises the clearance of the current process' mailbox. 
+    \item [Arguments] A security level
+    \item [Returns] A capability for lowering the mailbox level back to the previous value. 
+    \item [Failure behavior] Fails if the type of the argument is invalid (dynamic type checking).
+\end{description}
+
+
+
+
 \subsubsection{\code{readInput}}
 \begin{description}
 \item[Description] Reads a  line from the console.
@@ -888,10 +938,11 @@ which the process is to be registered, $\mathit{pid}$ is the process identifier,
 $\mathit{authority}$ is the top authority value.
     \item [Returns] Unit.
     \item [Blocking behavior] Synchronous. 
-    \item [Failure behavior] Crashes if the provided authority is not top.
-    \item [Example usage]\textcode{register ("auctionServer", self())}
+    \item [Failure behavior] Crashes if the provided authority is not top, or if the blocking level is not $\bot$.
+    \item [Example usage]\textcode{register ("auctionServer", self(), authority)}
 \end{description}
 
+Note that this is a privileged operation with system-wide consequences. 
 
 
 \subsubsection{\code{rcv}}
