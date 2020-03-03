@@ -234,12 +234,11 @@ Evaluation of pattern and guard expressions is \emph{sandboxed} -- it may not in
 spawn threads.
 
 
-\if 0
 \paragraph{Implementation note} 
 Internally, handlers are desugared into a function with a case expression that returns a tuple such that the first 
 element of the tuple indicates whether the message should be picked or not, and the second element is the body 
 of the handler wrapped in a function, e.g., a value of the form \textcode{fn () => $\mathit{e_2}$}.
-\fi 
+
 
 \subsubsection{Example: receive with a timeout}
 The following listing illustrates a program that implements
