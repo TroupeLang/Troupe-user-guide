@@ -423,7 +423,6 @@ we also carry the information about the chosen branch into the type label.
 
 
 
-
 \paragraph{Implicit flows and I/O}
 The implicit information flows are further propagated between processes. 
 In the mailbox, each message is additionally tagged with a label that 
@@ -478,6 +477,33 @@ is helpful when declassifying the blocking label (cf. Section~\ref{sec:pinidecl}
 
 
 
+\paragraph{Implicit flows and type labels}
+Type labels of values created in branches are also tainted by the pc-label.
+Operations that check the type label, e.g., arithmetics or pattern
+matching, use the information in the type label to appropriately taint the blocking level.
+the value.
+\begin{lstlisting}
+(* ifc_type_labels.trp *)
+let val x = 100 raisedTo {alice}
+    val y = 200 raisedTo {bob}
+    val z = 300 raisedTo {charlie}
+    val a = let pini authority 
+                val a = if y > 10 then z else "not an integer"
+            in a 
+            end
+    val _ = printWithLabels a
+    val _ = debugpc()
+    val w = a + x
+    val _ = printWithLabels w
+in debugpc()
+end
+\end{lstlisting}
+\begin{verbatim}
+300@{charlie,bob}%{bob}
+PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{}
+400@{charlie,bob,alice}%{}
+PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{bob}
+\end{verbatim}
 
 
 \paragraph{Implementation note}
