@@ -4,6 +4,7 @@ dynamic information flow control.
 \troupelang\ is a research language, and as such is intended as a playground for research in 
 information flow control.
 
+
 \subsection{Background and influence}
 The design of \troupelang\ is influenced by a number of programming languages and systems. With respect to 
 security, our design draws heavily on the systems such as Fabric/Jif, LIO, and FLAM.
@@ -12,17 +13,78 @@ Finally, our syntax is SML-like.
 
 
 
+
+
 \subsection{Intended audience}
 This guide is intended for researchers and graduate-level students\footnote{You have the authors' sympathies if your instructor makes you read this.} interested in \troupelang.
 We assume that the reader is familiar with basic functional programming and the 
 core concepts of language-based information flow control such as noninterference.
 
-\section{Basic features}
 
-This guide assumes that \troupelang\ is installed on your system, with appropriately set environment variables.
+\section{System architecture}
+\label{sec:design}
+This section describes the basic architecture of the Troupe system
+and an overview of the programming model.
+
+\subsection{Troupe architecture}
+
+Two key concepts in Troupe's architecture are \emph{processes} and \emph{nodes}. A process is the primary unit of computation. Processes are lightweight and communicate with each other using message passing. Troupe processes run on Troupe nodes. A node is the primary unit of trust and corresponds to an instance of the Troupe runtime. Each node has a unique network identifier, and all communication between nodes is point-to-point encrypted using standard techniques.
+
+
+To  enforce information flow control in a decentralized fashion, Troupe combines the notions of standard security levels and \emph{trust} between nodes.
+There are no special requirements on the underlying label model other than the standard requirements of the distinguished bottom and top elements, denoted~$\bot$ and~$\top$, operators for the least upper bound and the greatest lower bound, denoted~$\sqcup$ and~$\sqcap$ respectively, and the security ordering $\flowsto$.
+
+Troupe nodes decide for themselves how much they trust other nodes.
+Trust is specified via security levels. Every node fully trusts itself, corresponding to trust level~$\top$. Trust levels of selected few nodes are specified through runtime configuration. All other nodes have trust level~$\bot$. Such nodes are assumed to perform no security monitoring on their end. In particular, nodes that do not run Troupe runtime also have trust level~$\bot$ (communication with such nodes is possible for as long as they adhere to the serialization protocol). When communicating with $\bot$-trusted nodes, all data from received them is treated as public (i.e., confidentiality level $\bot$) and no confidential data can be sent to them. 
+
+In general, when node~$n_1$ trusts node~$n_2$ up to level~$\ell$ it means:
+\begin{enumerate}
+    \item only data labeled up to~$\ell$ is sent from $n_1$ to $n_2$, and 
+    \item data received from~$n_2$ by $n_1$ is attenuated to be at most~$\ell$.
+\end{enumerate}
+
+\noindent 
+The first item prevents sending sensitive information to nodes that are not trusted to protect it. The second item weakens security labels of untrusted nodes.
+
+
+
+ We note that trust between nodes may be asymmetric, but is implicitly transitive. Trust should also not be conflated with integrity -- in the current system we only focus on the confidentiality.
+
+Figure~\ref{fig:troupe:architecture} illustrates three Troupe nodes, each running a few processes. The arrows in the figure correspond to the messages between processes. Messages within each node are delivered to processes directly, whereas messages between nodes are subject to inspection by the networking runtime based on the trust levels. % (cf. Section~\ref{sec:io:check}).
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.5\columnwidth]{process_and_nodes}	
+\end{center}
+\caption{Nodes and processes in Troupe. The zigzagged line on the incoming message corresponds to message attenuation, the dashed line on the outgoing message corresponds to checking that the recipient is trusted to receive the message.
+ \label{fig:troupe:architecture}}
+\end{figure}
+
+
+
+\subsection{Tag-based label model}
+The current version of Troupe uses a simple tag-based label model.
+Tags are abstract identifiers, e.g., \tag{alice}, \tag{bob}, \tag{secret},
+that specify confidentiality restrictions on data. 
+A security level is a set of tags, e.g., 
+\lev{\tag{alice}, \tag{bob}}, or 
+\lev{\tag{alice, bob, charlie}}.
+The more tags there are in the level the more restrictive is the data. 
+For example, the level 
+\lev{\tag{alice, bob}} is less restrictive than 
+\lev{\tag{alice, bob, charlie}}. The least restrictive level is the 
+empty set level \lev{}. When two levels are ordered we write 
+$\ell_1 \sqsubseteq \ell_2$ to say that level $\ell_2$ is as restrictive 
+as $\ell_1$.
+
+
 %
-See Appendix~\ref{appendix:installationandconfig} for further 
-information on how to install and configure Troupe.
+%{\bf Threat model} 
+%Troupe's threat model is one of the \emph{remote attackers} that only observes the messages sent to them or their absence. In particular, the adversary does not observe the state of the Troupe runtime, including local error messages or CPU usage. We also do not address traffic analysis attacks.
+
+
+
+\section{Basic features}
 
 
 \subsection{A minimal \troupelang\ program}
@@ -320,10 +382,61 @@ for reading the process name other than causing an error; this prevents using pr
 
 \section{Information flow control}
 \label{sec:infoflow}
-Troupe implements dynamic information flow control. 
+
+This section presents the inner workings of Troupe's security monitor. The monitor is fail-stop at the granularity of individual processes: monitor violation in a process terminates that process but does not affect other processes or nodes.
+
+
+The monitor is designed to enforce a variant of progress-sen\-si\-tive 
+noninterference with declassification. Progress-sensitive baseline is chosen because Troupe is a concurrent system that runs untrusted code, making it possible to amplify leaks via progress/termination, e.g., by designating a process per bit. 
 %
-Information flow violations result in termination of a process,
+In a dynamic system, such as Troupe, a progress leak may stem from several sources that includes divergence, blocking on input, or a runtime crash, such as evaluating the term {\tt 1 + ()}. 
+%
+%Troupe implements dynamic information flow control. 
+%
+All information flow violations result in termination of a process,
 unless the process is sandboxed. 
+
+
+
+
+
+\subsection{Privileged operations and authority}
+\label{sec:infoflow:authority}
+
+Troupe provides a set of privileged operations 
+such as declassifications or process registration. All privileged operations require special \emph{authority} values. 
+
+Authorities in Troupe are capabilities and are unforgeable. 
+%They are modeled after similar concepts in Jif~\cite{Jif} and Fabric~\cite{liu2017fabric}, LIO~\cite{LIO} (where they are known as privileges), and operating systems~\cite{HiStar,Asbestos,Flume}.
+Operationally, authority is an encapsulated security level that we dub  \emph{efficacy} of an authority\footnote{In standard nomenclature this is simply ``authority level''. However, because authorities in Troupe are values with the corresponding value and type levels, we use a different term to avoid confusion.}. The higher the efficacy level the more powerful is the authority. 
+%
+System-wide privileged primitives, such as \textcode{register} in the echo-server example require the top authority, while  declassification operations may use attenuated authority. Attenuation happens in one of the following two ways. 
+\label{sec:io:check}
+
+\begin{enumerate}
+\item 
+Programmatic attenuation takes place via a dedicated primitive \textcode{attenuate}. For example, expression \textcode{attenuate( authority, \lev{\ltag{alice}})} returns authority value with efficacy \ltag{\lev{alice}}.  Programmatic attenuation helps programmers apply the principle of least privilege, for example, when passing authority to untrusted code that is allowed to perform some (but not all) declassifications.
+
+\item Troupe runtime attenuates all levels and authority efficacies in remotely received data from $\ell$ to $\ell \sqcap \ell_{\mathit{trust}}$, where~$\ell_{\mathit{trust}}$ is the trust level of the sending node.
+\end{enumerate}
+
+
+
+
+In the beginning of program execution, Troupe runtime binds the top authority to the variable \textcode{authority} in the main program. This variable, however, is not in the scope of the code imported from libraries or received over the network. Such code needs to obtain authority explicitly. 
+
+
+
+
+%
+%\paragraph{Remark}
+%Current version of Troupe only enforces confidentiality 
+%properties.
+%
+%
+\subsection{Monitoring for information flow}
+
+
 
 \paragraph{Labeled values}
 Every value in Troupe is \emph{deeply labeled} with confidentiality
@@ -333,33 +446,6 @@ value. Troupe uses the syntax \textcode{$\mathit{v}$@\lev{$\mathit{\ell_{\mathit
 denote that the value $\mathit{v}$ has security level 
 $\mathit{\ell_{\mathit{val}}}$, and the information about the type of this value is labeled at $\mathit{\ell_{\mathit{type}}}$.
 
-
-
-
-
-
-\paragraph{Remark}
-Current version of Troupe only enforces confidentiality 
-properties.
-
-\subsection{Tag-based label model}
-The current version of Troupe uses a simple tag-based label model.
-Tags are abstract identifiers, e.g., \tag{alice}, \tag{bob}, \tag{secret},
-that specify confidentiality restrictions on data. 
-A security level is a set of tags, e.g., 
-\lev{\tag{alice}, \tag{bob}}, or 
-\lev{\tag{alice, bob, charlie}}.
-The more tags there are in the level the more restrictive is the data. 
-For example, the level 
-\lev{\tag{alice, bob}} is less restrictive than 
-\lev{\tag{alice, bob, charlie}}. The least restrictive level is the 
-empty set level \lev{}. When two levels are ordered we write 
-$\ell_1 \sqsubseteq \ell_2$ to say that level $\ell_2$ is as restrictive 
-as $\ell_1$.
-
-
-
-\subsection{Monitoring for information flow}
 A labeled value can be created using Troupe's \textcode{raisedTo}
 primitive. Troupe's runtime propagates labels throughout the computation.
 This section presents examples of label propagation via explicit flows, implicit flows, and
@@ -515,7 +601,7 @@ PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{bob}
 \label{sec:declassification}
 To relax the constraints imposed by the information flow control, Troupe offers 
 a mechanism for \emph{declassification}. 
-\subsubsection{Authority}
+%\subsubsection{Authority}
 
 In Troupe, declassifying information requires a capability to declassify,
 known as the \emph{declassification authority}. 
@@ -528,14 +614,14 @@ level $\ell_{\mathit{auth}}$ permits a declassification to level
 $\ell_{\mathit{to}}$ if
 ${\ell_{\mathit{from}}} \sqsubseteq {  \ell_{\mathit{to}} \sqcup \ell_{\mathit{auth}}}.$
 
-Authorities in Troupe are capabilities, which means that they cannot be 
-created out of thin air. At the start of a Troupe program, the top-level authority is 
- bound to variable \textcode{authority}. This authority can be used freely by the program.
-Note, however, that the authority is not available to code that is imported 
-from the libraries or to code that is received over the network (cf. Section~\ref{sec:network}).
+%Authorities in Troupe are capabilities, which means that they cannot be 
+%created out of thin air. At the start of a Troupe program, the top-level authority is 
+% bound to variable \textcode{authority}. This authority can be used freely by the program.
+%Note, however, that the authority is not available to code that is imported 
+%from the libraries or to code that is received over the network (cf. Section~\ref{sec:network}).
 
 
-\subsubsection{Attenuation}
+\subsubsection{Example with attenuation of authority}
 Authority can be attenuated using the \code{attenuate} primitive. 
 
 \begin{lstlisting}
