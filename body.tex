@@ -563,35 +563,6 @@ is helpful when declassifying the blocking label (cf. Section~\ref{sec:pinidecl}
 
 
 
-\paragraph{Implicit flows and type labels}
-Type labels of values created in branches are also tainted by the pc-label.
-Operations that check the type label, e.g., arithmetics or pattern
-matching, use the information in the type label to appropriately taint the blocking level.
-the value.
-\begin{lstlisting}
-(* ifc_type_labels.trp *)
-let val x = 100 raisedTo {alice}
-    val y = 200 raisedTo {bob}
-    val z = 300 raisedTo {charlie}
-    val a = let pini authority 
-                val a = if y > 10 then z else "not an integer"
-            in a 
-            end
-    val _ = printWithLabels a
-    val _ = debugpc()
-    val w = a + x
-    val _ = printWithLabels w
-in debugpc()
-end
-\end{lstlisting}
-\begin{verbatim}
-300@{charlie,bob}%{bob}
-PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{}
-400@{charlie,bob,alice}%{}
-PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{bob}
-\end{verbatim}
-
-
 \paragraph{Implementation note}
 \troupelang\ implements information flow enforcement via inlining.
 
@@ -706,6 +677,37 @@ end
 \end{lstlisting}
 Here, \code{tmp} is a fresh variable that is not part of the user program. Primitives \code{pinipush} and 
 \code{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
+
+
+
+\paragraph{Implicit flows and type labels}
+Type labels of values created in branches are also tainted by the pc-label.
+Operations that check the type label, e.g., arithmetics or pattern
+matching, use the information in the type label to appropriately taint the blocking level.
+the value.
+\begin{lstlisting}
+(* ifc_type_labels.trp *)
+let val x = 100 raisedTo {alice}
+    val y = 200 raisedTo {bob}
+    val z = 300 raisedTo {charlie}
+    val a = let pini authority 
+                val a = if y > 10 then z else "not an integer"
+            in a 
+            end
+    val _ = printWithLabels a
+    val _ = debugpc()
+    val w = a + x
+    val _ = printWithLabels w
+in debugpc()
+end
+\end{lstlisting}
+\begin{verbatim}
+300@{charlie,bob}%{bob}
+PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{}
+400@{charlie,bob,alice}%{}
+PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{bob}
+\end{verbatim}
+
 
 
 \subsection{Information flow control with I/O primitives}
