@@ -16,6 +16,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: main.pdf
-          asset_name: userguide
+          asset_name: userguide.pdf
           tag: ${{ github.ref }}
           overwrite: true
