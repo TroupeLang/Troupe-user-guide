@@ -1,0 +1,21 @@
+name: Build and release userguide
+on: [push]
+jobs:
+  latex:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: build latex document
+        uses: xu-cheng/latex-action@v2
+        with:
+          root_file: main.tex
+      - name: release generated pdf
+        uses: svenstaro/upload-release-action@v2
+        if: github.ref == 'refs/heads/master'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: main.pdf
+          asset_name: userguide
+          tag: ${{ github.ref }}
+          overwrite: true
