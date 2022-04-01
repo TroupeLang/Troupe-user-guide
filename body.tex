@@ -456,8 +456,8 @@ finally via termination and blocking.
 The following example shows how to create labeled values and how explicit dependencies are propagated.
 \begin{lstlisting}
 (* ifc_explicit.trp *)
-let val x = 10 raisedTo {alice}
-    val y = 20 raisedTo {bob}
+let val x = 10 raisedTo `{alice}`
+    val y = 20 raisedTo `{bob}`
 in x + y
 end
 \end{lstlisting}
@@ -481,9 +481,9 @@ Labels in \troupelang\ are first-class:
 \begin{lstlisting}
 (* ifc_labels.trp *)
 import lists
-map (fn (x,lev) => x raisedTo lev) [ (1, {alice})
-                                   , (2, {bob})
-                                   , (3, {charlie}) ]
+map (fn (x,lev) => x raisedTo lev) [ (1, `{alice}`)
+                                   , (2, `{bob}`)
+                                   , (3, `{charlie}`) ]
 \end{lstlisting}
 \begin{lstlisting}
 >>> Main thread finished with value: [1@{alice}%{}, 2@{bob}%{}, 
@@ -495,7 +495,7 @@ Conditionals propagate the flows as well:
 
 \begin{lstlisting}
 (* ifc_implicit1.trp *)
-let val x = 10 raisedTo {alice} 
+let val x = 10 raisedTo `{alice}`
 in if x > 5 then 1 else 0 
 end	
 \end{lstlisting}
@@ -519,12 +519,12 @@ where the pc-tag set to the provided label argument.
 
 \begin{lstlisting}
 (* ifc_implicit2.trp *)
-let val x = 10 raisedTo {secret}
+let val x = 10 raisedTo `{secret}`
     val p = self()
     val _ = spawn ( fn () => if x > 0 
     							then send (p, 1) 
     							else send (p, 0) )
-in rcvp ({secret}, [ hn x => x ])
+in rcvp (`{secret}`, [ hn x => x ])
 end
 \end{lstlisting}
 \begin{verbatim}
@@ -542,7 +542,7 @@ $\mathit{pc}~\sqsubseteq~\mathit{block}$. To view the labels there is a
 helper internal function \code{debugpc ()}.
 \begin{lstlisting}
 (* ifc_debugpc.trp *)
-let val x = 1 raisedTo{secret}
+let val x = 1 raisedTo `{secret}`
     val _ = debugpc() 
     val x = if x > 2 then receive [] else () 
     val _ = debugpc() 
@@ -597,7 +597,7 @@ Authority can be attenuated using the \code{attenuate} primitive.
 
 \begin{lstlisting}
 (* ifc_attenuate.trp *)
-attenuate (authority, {alice})    
+attenuate (authority, `{alice}`)    
 \end{lstlisting}
 \begin{verbatim}
 >>> Main thread finished with value: !{alice}@{}%{}    
@@ -609,17 +609,17 @@ the expression to declassify, the authority, and the target label. For example, 
 looks like this. 
 \begin{lstlisting}
 (* ifc_declassify_atten.trp *)
-let val x = 10 raisedTo {alice}
- in declassify (x , authority, {} )
+let val x = 10 raisedTo `{alice}`
+ in declassify (x , authority, `{}`)
 end 
 \end{lstlisting}
 
 When authority for declassification is not sufficient, Troupe returns an error message.
 \begin{lstlisting}
 (* ifc_declassify_err.trp *)
-let val authAlice = attenuate (authority, {alice})
-    val x = 1 raisedTo {bob}
-in declassify (x, authAlice, {})
+let val authAlice = attenuate (authority, `{alice}`)
+    val x = 1 raisedTo `{bob}`
+in declassify (x, authAlice, `{}`)
 end     
 \end{lstlisting}
 
@@ -876,7 +876,7 @@ Authority values that are transferred across the nodes are subject to the same c
     \item [Description] Returns the attenuated authority 
     \item [Arguments] A value of authority type.
     \item [Returns] A value of authority type
-    \item [Example usage] \code{attenuate ( authority, \{alice\} ) } Note that the above example will generate a runtime error.
+    \item [Example usage] \code{attenuate ( authority, `\{alice\}` ) } Note that the above example will generate a runtime error.
 \end{description}
 
 
@@ -899,7 +899,7 @@ The accessibility of this argument follows the standard lexical scoping rules. I
 %\begin{lstlisting}
 \begin{verbatim}
 let val x = 42 raisedTo {alice}
-in print (declassify (x, authority, {})
+in print (declassify (x, authority, `{}`)
 end    
 \end{verbatim}
 %\end{lstlisting}
