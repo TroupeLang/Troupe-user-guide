@@ -13,3 +13,4 @@ main.pdf
 *.xdv
 .DS_Store
 main.toc
+timestamped/

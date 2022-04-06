@@ -7,4 +7,5 @@ pvc:
 	latexmk -pdf main -pvc -synctex=1
 timestamp:
 	latexmk -pdf main 
-	cp main.pdf llvm-notes-$(TIMESTAMP).pdf 
+	mkdir -p timestamped
+	cp main.pdf timestamped/troupe-user-guide-$(TIMESTAMP).pdf 
