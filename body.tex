@@ -1183,6 +1183,35 @@ end
 \end{minipage}
 \end{description}
 
+\section{Useful standard libraries}
+
+Current installation of Troupe has a minimal set of standard libraries. We briefly describe the 
+most useful ones here.
+
+\subsection{Library {\tt declassifyutil}} 
+
+This library contains some useful functions for \emph{deep declassification} of tuples and 
+declassifying both an expression and blocking level at the same time. 
+
+\begin{itemize}
+\item {\code{declassify\_with\_block(v, auth, lev)}} takes three arguments -- the value to declassify, 
+the authority, and the target level -- just like in normal declassification -- and declassifies
+both the blocking label and the value. 
+
+
+\item {\code{(declassifydeep(v, auth, lev)}} is like abov, but additionally
+further declassifies nested lists and tuples up to size nine. 
+
+
+\end{itemize}
+
+\subsection{Library {\tt lists}}
+
+This library contains standard list functions, such as \code{map}, \code{mapi}, \code{foldi},
+\code{range}, \code{range}, \code{reverse}, \code{lookup}, \code{elem}, \code{length}, \code{append}, 
+and \code{partition}. 
+
+
 \clearpage
 \section{Installation and configuration}
 \label{appendix:installationandconfig}
