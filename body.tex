@@ -12,9 +12,6 @@ With respect to concurrency, the design draws on the systems such as Erlang, Clo
 Finally, our syntax is SML-like.
 
 
-
-
-
 \subsection{Intended audience}
 This guide is intended for researchers and graduate-level students\footnote{You have the authors' sympathies if your instructor makes you read this.} interested in \troupelang.
 We assume that the reader is familiar with basic functional programming and the
@@ -26,10 +23,9 @@ core concepts of language-based information flow control such as noninterference
 This section describes the basic architecture of the Troupe system
 and an overview of the programming model.
 
+
 \subsection{Troupe architecture}
-
 Two key concepts in Troupe's architecture are \emph{processes} and \emph{nodes}. A process is the primary unit of computation. Processes are lightweight and communicate with each other using message passing. Troupe processes run on Troupe nodes. A node is the primary unit of trust and corresponds to an instance of the Troupe runtime. Each node has a unique network identifier, and all communication between nodes is point-to-point encrypted using standard techniques.
-
 
 To  enforce information flow control in a decentralized fashion, Troupe combines the notions of standard security levels and \emph{trust} between nodes.
 There are no special requirements on the underlying label model other than the standard requirements of the distinguished bottom and top elements, denoted~$\bot$ and~$\top$, operators for the least upper bound and the greatest lower bound, denoted~$\sqcup$ and~$\sqcap$ respectively, and the security ordering $\flowsto$.
@@ -47,7 +43,6 @@ In general, when node~$n_1$ trusts node~$n_2$ up to level~$\ell$ it means:
 The first item prevents sending sensitive information to nodes that are not trusted to protect it. The second item weakens security labels of untrusted nodes.
 
 
-
  We note that trust between nodes may be asymmetric, but is implicitly transitive. Trust should also not be conflated with integrity -- in the current system we only focus on the confidentiality.
 
 Figure~\ref{fig:troupe:architecture} illustrates three Troupe nodes, each running a few processes. The arrows in the figure correspond to the messages between processes. Messages within each node are delivered to processes directly, whereas messages between nodes are subject to inspection by the networking runtime based on the trust levels. % (cf. Section~\ref{sec:io:check}).
@@ -59,7 +54,6 @@ Figure~\ref{fig:troupe:architecture} illustrates three Troupe nodes, each runnin
 \caption{Nodes and processes in Troupe. The zigzagged line on the incoming message corresponds to message attenuation, the dashed line on the outgoing message corresponds to checking that the recipient is trusted to receive the message.
  \label{fig:troupe:architecture}}
 \end{figure}
-
 
 
 \subsection{Tag-based label model}
@@ -83,13 +77,10 @@ as $\ell_1$.
 %Troupe's threat model is one of the \emph{remote attackers} that only observes the messages sent to them or their absence. In particular, the adversary does not observe the state of the Troupe runtime, including local error messages or CPU usage. We also do not address traffic analysis attacks.
 
 
-
 \section{Basic features}
 
 
 \subsection{A minimal \troupelang\ program}
-
-
 We start with an example of a small \troupelang\ program that returns number 42 as its result.
 \begin{verbatim}
 42
@@ -114,7 +105,6 @@ parts: the base value 42, the security label of the value after the @ sign,
 and the security label of the type after the \% sign. Here,  {\tt \{\}} that means the lowest security level.
 
 
-
 \subsection{Overview of the basic language}
 At the very core of \troupelang\ is a dynamically typed functional programming language without mutable references.
 For example, a Fibonacci function in \troupelang\ is written exactly as in SML sans type annotations.
@@ -131,7 +121,6 @@ Running this program results in the output
 main thread finished with value: 55@{}%{}
 \end{verbatim}
 
-
 Note that \troupelang\ is dynamically typed. For example, a program such as {\tt 1 + () } results in a
 runtime type error
 
@@ -139,6 +128,7 @@ runtime type error
 Runtime error in thread b279c491-4509-48e0-82fa-15f18de96003@{}%{}
    value ()@{} is not a number
 \end{verbatim}
+
 
 \subsection{Types and values}
 \troupelang\ has the following types:
@@ -163,13 +153,16 @@ Aggregates support equality checks that is defined as point-wise equality of the
 \textcode{andalso}, and boolean disjunction is \textcode{orelse}. List cons operation is \textcode{::} and
 string concatenation is {\textcode{\^{}}}.
 
+
 \subsection{Thread-local control flow}
 Troupe uses SML-like syntax for thread-local operations. A reader familiar
 with SML may skip this subsection and proceed to  Section~\ref{sec:labels}.
 
+
 \subsubsection{If expressions}
 Conditionals have the form \textcode{if e0 then e1 else e2}, where \textcode{e0} is the guard of the conditional.
 The branch \textcode{e1} is chosen if \textcode{e0} evaluates to true; otherwise, the branch \textcode{e2} is chosen.
+
 
 \subsubsection{Case expressions}
 Case expressions have the form
@@ -183,7 +176,6 @@ case e of
 Here, \textcode{pat\_1}, ..., \textcode{pat\_n} are the patterns that are matched against the expression \textcode{e}, and the \textcode{e\_1}, ..., \textcode{e\_n} are the
 expressions to evaluate. Patterns range over literals, including \textcode{()}, booleans, numbers, and string literals, as well as the
 aggregate constructors, and the wildcard pattern \_.
-
 
 
 \subsubsection{Let expressions}
@@ -219,7 +211,6 @@ end
 \end{lstlisting}
 
 
-
 \subsection{Libraries}
 \label{sec:labels}
 Troupe has a minimal support for built-in libraries. Current libraries include a library \textcode{lists} for common list manipulations, library \textcode{declassifyutil} for declassification of aggregate data structures, and library
@@ -229,7 +220,6 @@ Troupe has a minimal support for built-in libraries. Current libraries include a
 import lists
 printWithLabels (map ( fn i => i + 1) [1,2,3])
 \end{lstlisting}
-
 
 
 \subsection{Concurrency}
@@ -259,16 +249,14 @@ ed165a5d-acb0-4c6e-9843-29d9f263c6da@{}%{})@{}%{}
 "C"@{}%{}
 \end{verbatim}
 
+
 \subsubsection{Sending and receiving messages}
 Process communication in Troupe happens via message passing.  Every process has a designated mailbox,
 and other processes may send messages to that mailbox. Only the process that owns the mailbox may pick the messages from it.
 
-
 To send a message to another process, we use function \textcode{send} that accepts as its argument a tuple of
 a process identifier and a value to send. To receive a message from the mailbox, we use function \textcode{receive}
 that accepts as its argument a list of handlers that select a message from the mailbox.
-
-
 
 \begin{lstlisting}
 (* basic_receive.trp *)
@@ -278,7 +266,6 @@ let fun foo () =
 in send (p, "hello")
 end
 \end{lstlisting}
-
 
 \paragraph{Handlers}\label{sec:handlers}
 In the example above, the expression \textcode{hn x => ...} is a \emph{handler}.
@@ -299,7 +286,6 @@ Finally, note that handlers are first class (see also the implementation note be
 \paragraph{Constraints on the guard expressions}
 Evaluation of pattern and guard expressions is \emph{sandboxed} -- it may not invoke I/O operations, or
 spawn threads.
-
 
 \paragraph{Implementation note}
 Internally, handlers are desugared into a function with a case expression that returns a tuple such that the first
@@ -327,6 +313,7 @@ in receive [ hn ("MESSAGE", x) => print x
            ]
 end
 \end{lstlisting}
+
 
 \subsubsection{Example: updateable service}
 The listing below presents an example of an updateable service --
@@ -375,16 +362,17 @@ main thread finished with value: ()@{}%{}
 force terminating the server example after 1s
 \end{verbatim}
 
+
 \subsection{Debugging concurrent programs}
 To help debugging concurrent programs, one can use a special primitive \textcode{\_setProcessDebuggingName} that
 takes a string argument and uses that string when reporting errors in the process. By design, there is no mechanism
 for reading the process name other than causing an error; this prevents using process names to leak information.
 
+
 \section{Information flow control}
 \label{sec:infoflow}
 
 This section presents the inner workings of Troupe's security monitor. The monitor is fail-stop at the granularity of individual processes: monitor violation in a process terminates that process but does not affect other processes or nodes.
-
 
 The monitor is designed to enforce a variant of progress-sen\-si\-tive
 noninterference with declassification. Progress-sensitive baseline is chosen because Troupe is a concurrent system that runs untrusted code, making it possible to amplify leaks via progress/termination, e.g., by designating a process per bit.
@@ -395,9 +383,6 @@ In a dynamic system, such as Troupe, a progress leak may stem from several sourc
 %
 All information flow violations result in termination of a process,
 unless the process is sandboxed.
-
-
-
 
 
 \subsection{Privileged operations and authority}
@@ -420,13 +405,7 @@ Programmatic attenuation takes place via a dedicated primitive \textcode{attenua
 \item Troupe runtime attenuates all levels and authority efficacies in remotely received data from $\ell$ to $\ell \sqcap \ell_{\mathit{trust}}$, where~$\ell_{\mathit{trust}}$ is the trust level of the sending node.
 \end{enumerate}
 
-
-
-
 In the beginning of program execution, Troupe runtime binds the top authority to the variable \textcode{authority} in the main program. This variable, however, is not in the scope of the code imported from libraries or received over the network. Such code needs to obtain authority explicitly.
-
-
-
 
 %
 %\paragraph{Remark}
@@ -434,8 +413,9 @@ In the beginning of program execution, Troupe runtime binds the top authority to
 %properties.
 %
 %
-\subsection{Monitoring for information flow}
 
+
+\subsection{Monitoring for information flow}
 
 
 \paragraph{Labeled values}
@@ -466,13 +446,11 @@ main thread finished with value: 30@{alice,bob}%{}
 \end{verbatim}
 
 
-
 \paragraph{Relationship between type and value labels}
 Observe how the result of this computation is labeled with
 the level \lev{\tag{alice, bob}}, but the type label is \lev{}.
 Because information about the value is more precise than the information about the type, it holds that
 $\ell_{\mathit{type}} \sqsubseteq \ell_{\mathit{val}}$.
-
 
 
 \paragraph{Labels as values and label comparison}
@@ -489,9 +467,10 @@ map (fn (x,lev) => x raisedTo lev) [ (1, `{alice}`)
 >>> Main thread finished with value: [1@{alice}%{}, 2@{bob}%{},
 3@{charlie}%{}]@{}%{}
 \end{lstlisting}
+
+
 \paragraph{Implicit flows}
 Conditionals propagate the flows as well:
-
 
 \begin{lstlisting}
 (* ifc_implicit1.trp *)
@@ -505,8 +484,6 @@ main thread finished with value: 1@{alice}%{alice}
 Observe how the final value carries the dependency of the
 branch that has been chosen here. Because, of the dynamic nature of type checking,
 we also carry the information about the chosen branch into the type label.
-
-
 
 
 \paragraph{Implicit flows and I/O}
@@ -562,11 +539,8 @@ with the label of the branch. The distinction between the two labels
 is helpful when declassifying the blocking label (cf. Section~\ref{sec:pinidecl}).
 
 
-
 \paragraph{Implementation note}
 \troupelang\ implements information flow enforcement via inlining.
-
-
 
 \subsection{Declassification and progress-sensitivity}
 \label{sec:declassification}
@@ -603,6 +577,7 @@ attenuate (authority, `{alice}`)
 >>> Main thread finished with value: !{alice}@{}%{}
 \end{verbatim}
 
+
 \subsubsection{Basic declassification}
 Troupe provides an explicit declassification command \textcode{declassify} that takes three arguments:
 the expression to declassify, the authority, and the target label. For example, a basic declassification
@@ -630,6 +605,7 @@ Runtime error in thread b469cbef-16d3-4fe8-ac1e-bd21c7e8950d@{}%{}
  | level of the authority: {alice}
  | target level of the declassification: {}
 \end{lstlisting}
+
 
 \subsubsection{Declassification of the blocking level}
 \label{sec:pinidecl}
@@ -679,7 +655,6 @@ Here, \textcode{tmp} is a fresh variable that is not part of the user program. P
 \textcode{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
 
 
-
 \paragraph{Implicit flows and type labels}
 Type labels of values created in branches are also tainted by the pc-label.
 Operations that check the type label, e.g., arithmetics or pattern
@@ -708,16 +683,15 @@ PID:2dfdc81f-1027-40e2-810c-11fadb2dd40f@{}%{}     PC:{}          BL:{bob}
 \end{verbatim}
 
 
-
 \subsection{Information flow control with I/O primitives}
 This section may be omitted upon first read as it has a number of information flow subtleties that
 can be omitted when first starting to use the system.
-\subsubsection{Generalized receive and mailbox clearances}
 
+
+\subsubsection{Generalized receive and mailbox clearances}
 I/O operations such as send and receive introduce additional concerns w.r.t.
 information flow control. In particular, because mailbox acts as a mutable state, an extra
 care needs to be taken to control information flows through the mailbox structure.
-
 
 Every message in a mailbox carries an extra label -- the blocking level of the sender. We refer to this
 extra label as the \emph{presence label}.
@@ -732,7 +706,6 @@ at the level of the current pc label.
 
 While such a form of general receive over an interval of levels is useful, it is also too powerful
 and needs to be further constrained. Consider the following snippet
-
 
 \begin{lstlisting}
 let val _ = if secret then rcv ({}, {alice}, [hn x => x])
@@ -757,8 +730,6 @@ There are a few constraints related to the mailbox clearance.
     \item The $\mathit{pc}$-label of the program point where the mailbox clearance is raised affects the lower bound of the intervals. In particular, if the clearance is raised when the $\mathit{pc}$ counter is $\mathit{pc}_{\mathit{raise}}$, the mailbox structure cannot be influenced by receives that are not as restrictive as $\mathit{pc}_{\mathit{raise}}$; in other words: $ \mathit{pc}_\mathit{raise} \sqsubseteq \mathit{pc} \sqcap \ell_1$, where $\ell_1$ is the lower bound of the interval receive.
     \item If the process mailbox clearance is raised in a branch, it must be lowered back before reaching the join point of the branch.
 \end{enumerate}
-
-
 
 
 \section{Networking}
@@ -809,16 +780,17 @@ The complete echo example -- including the code above and
 the scripts for generating the identifiers is available at
 \textcode{\$TROUPE/examples/network/echo}.
 
+
 \subsubsection{Aliases}
 Aliases is a mechanism that allows us to avoid having hardcoded node identifiers in the source code.
 The alias mechanism operates in the way of the traditional Unix hosts files.
 To use this mechanism, we need to provide the path to a special alias file that contains a mapping between
 alias strings and network identifiers. In the text of the program, an alias string must start with character~"@".
 
-
 \begin{verbatim}
 $TROUPE/rt/troupe out.js --aliases=<path_to_aliases_file>
 \end{verbatim}
+
 
 \subsection{Node trust levels}
 
@@ -852,13 +824,15 @@ This ensures that the runtime is not accidentally tainted by nodes that have low
 Authority values that are transferred across the nodes are subject to the same constraints and attenuation.
 
 
-
 %\section{Sandboxing}
 \clearpage
 \appendix
+
+
 \section{Language reference}
 
 \subsection{Built-in expressions}
+
 
 \subsubsection{\textcode{adv}}
 \begin{description}
@@ -869,6 +843,7 @@ Authority values that are transferred across the nodes are subject to the same c
     \item [Failure behavior] Crashes the current process if the provided value and the blocking label are more restrictive than bottom.
     \item [Example usage] \textcode{adv\ (42\ raisedTo\ \{alice\})}.
 \end{description}
+
 
 \subsubsection{\textcode{attenuate}}
 \begin{description}
@@ -887,6 +862,7 @@ The accessibility of this argument follows the standard lexical scoping rules. I
     \item [Arguments] None
 \end{description}
 
+
 \subsubsection{\textcode{declassify}}
 \begin{description}
     \item [Description] Declassifies an expression.
@@ -902,11 +878,7 @@ in print (declassify (x, authority, `{}`)
 end
 \end{verbatim}
 %\end{lstlisting}
-
-
- \end{minipage}
-
-
+\end{minipage}
 \end{description}
 
 
@@ -968,8 +940,6 @@ from \textcode{stdio} library.
 \end{description}
 
 
-
-
 \subsubsection{\textcode{pinipop}}
 \begin{description}
     \item [Description] Pop an authority value from the \emph{pini} stack, and declassify the current blocking level.
@@ -979,6 +949,7 @@ from \textcode{stdio} library.
 or if the provided capability does not match to the last capability generated by the \textcode{pinipush}.
     \item [Example usage] \textcode{pinipop ()}
 \end{description}
+
 
 \subsubsection{\textcode{pinipush}}
 \begin{description}
@@ -1030,8 +1001,6 @@ or if the provided capability does not match to the last capability generated by
 Note that the top-level authority is required because this is a privileged operation with system-wide consequences.
 
 
-
-
 \subsubsection{\textcode{raisembox}}
 \begin{description}
     \item [Description] Raises the clearance of the current process' mailbox.
@@ -1050,15 +1019,13 @@ Note that the top-level authority is required because this is a privileged opera
 \end{description}
 
 
-
-
-
 \subsubsection{\textcode{receive}}
 \begin{description}
     \item [Description] Picks a message from the mailbox.
     \item [Arguments] A list of \emph{handler functions} (cf. Section~\ref{sec:handlers}).
     \item [Returns] The value returned by the body of the matching handler.
 \end{description}
+
 
 \subsubsection{\textcode{register}}
 \begin{description}
@@ -1129,16 +1096,13 @@ enforcing runtime is the same.
 \end{description}
 
 
-
 \subsubsection{\textcode{sleep}}
-
 \begin{description}
     \item [Description] Suspends the execution of the current thread for a specified duration of time.
     \item [Arguments] One argument of type number that specifies the sleep time in milliseconds.
     \item [Returns] Unit.
     \item [Example usage] \textcode{sleep\ 100}
 \end{description}
-
 
 
 \subsubsection{\textcode{spawn}}
@@ -1153,6 +1117,7 @@ Note that the function must be of the form \textcode{fn () => e}, i.e., it must 
 
 \end{description}
 
+
 \subsubsection{\textcode{raisedTo}}
 \begin{description}
     \item [Description] Raises the level of a value. Observe that this expression uses the infix syntax.
@@ -1163,7 +1128,6 @@ Note that the function must be of the form \textcode{fn () => e}, i.e., it must 
 
 
 \subsubsection{\textcode{whereis}}
-
 \begin{description}
     \item [Description] Looks up a registered process on a remote node.
     \item [Arguments] A tuple of the form $(\mathit{nodeid}, \mathit{name})$ where $\mathit{nodeid}$ is the string representing the p2p-identifier of the node, and $\mathit{name}$ is the name of the process registered at that node.
@@ -1182,13 +1146,13 @@ end
 \end{minipage}
 \end{description}
 
-\section{Useful standard libraries}
 
+\section{Useful standard libraries}
 Current installation of Troupe has a minimal set of standard libraries. We briefly describe the
 most useful ones here.
 
-\subsection{Library {\tt declassifyutil}}
 
+\subsection{Library {\tt declassifyutil}}
 This library contains some useful functions for \emph{deep declassification} of tuples and
 declassifying both an expression and blocking level at the same time.
 
@@ -1197,15 +1161,12 @@ declassifying both an expression and blocking level at the same time.
 the authority, and the target level -- just like in normal declassification -- and declassifies
 both the blocking label and the value.
 
-
 \item {\textcode{(declassifydeep(v, auth, lev)}} is like abov, but additionally
 further declassifies nested lists and tuples up to size nine.
-
-
 \end{itemize}
 
-\subsection{Library {\tt lists}}
 
+\subsection{Library {\tt lists}}
 This library contains standard list functions, such as \textcode{map}, \textcode{mapi}, \textcode{foldi},
 \textcode{range}, \textcode{range}, \textcode{reverse}, \textcode{lookup}, \textcode{elem}, \textcode{length}, \textcode{append},
 and \textcode{partition}.
@@ -1214,6 +1175,7 @@ and \textcode{partition}.
 \clearpage
 \section{Installation and configuration}
 \label{appendix:installationandconfig}
+
 \subsection{Installation}
 See the {\tt README} file provided with the installation.
 \if 0
