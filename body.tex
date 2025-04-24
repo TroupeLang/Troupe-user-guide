@@ -873,8 +873,8 @@ Authority values that are transferred across the nodes are subject to the same c
 \subsubsection{\code{attenuate}}
 \begin{description}
     \item [Description] Returns the attenuated authority
-    \item [Arguments] A value of authority type.
-    \item [Returns] A value of authority type
+    \item [Arguments] A tuple with the authority to use and the target level of authority.
+    \item [Returns] A value of authority type.
     \item [Example usage] \code{attenuate ( authority, `\{alice\}` ) } Note that the above example will generate a runtime error.
 \end{description}
 
