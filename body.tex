@@ -106,7 +106,7 @@ main thread finished with value: 42@{}%{}
 The first command here invokes the \troupelang\ compiler and specifies the generated output file to be {\tt out/program.js}.
 The second command invokes the nodejs runtime on the generated file. Note {\tt {-}{-}localonly} flag that
 prevents the runtime from initializing the network layer -- we discuss the network layer in Section~\ref{sec:network}.
-Troupe installation also includes a shell script \code{local.sh} that combines the above two tasks of compiling
+Troupe installation also includes a shell script \textcode{local.sh} that combines the above two tasks of compiling
 and running the programs.
 
 Observe the format of the output value {\tt 42@\{\}\%\{\}}. This value is \emph{labeled} and consists of three
@@ -222,8 +222,8 @@ end
 
 \subsection{Libraries}
 \label{sec:labels}
-Troupe has a minimal support for built-in libraries. Current libraries include a library \code{lists} for common list manipulations, library  \code{declassifyutil} for declassification of aggregate data structures, and library
-\code{stdio} with convenient wrappers for standard input and output. To use a library, one needs to import it with an \code{import} statement at the top of the program.
+Troupe has a minimal support for built-in libraries. Current libraries include a library \textcode{lists} for common list manipulations, library \textcode{declassifyutil} for declassification of aggregate data structures, and library
+\textcode{stdio} with convenient wrappers for standard input and output. To use a library, one needs to import it with an \textcode{import} statement at the top of the program.
 \begin{lstlisting}
 (* basic_lib.trp *)
 import lists
@@ -235,7 +235,7 @@ printWithLabels (map ( fn i => i + 1) [1,2,3])
 \subsection{Concurrency}
 \label{sec:concurrency}
 \subsubsection{Spawning processes}
-New processes are created using \code{spawn} function that takes as its argument a unit-argument function.
+New processes are created using \textcode{spawn} function that takes as its argument a unit-argument function.
 It return the process identifier of the new process, and starts the new process that from now on runs concurrently with the
 parent process.
 \begin{lstlisting}
@@ -264,8 +264,8 @@ Process communication in Troupe happens via message passing.  Every process has 
 and other processes may send messages to that mailbox. Only the process that owns the mailbox may pick the messages from it.
 
 
-To send a message to another process, we use function \code{send} that accepts as its argument a tuple of
-a process identifier and a value to send. To receive a message from the mailbox, we use function \code{receive}
+To send a message to another process, we use function \textcode{send} that accepts as its argument a tuple of
+a process identifier and a value to send. To receive a message from the mailbox, we use function \textcode{receive}
 that accepts as its argument a list of handlers that select a message from the mailbox.
 
 
@@ -376,7 +376,7 @@ force terminating the server example after 1s
 \end{verbatim}
 
 \subsection{Debugging concurrent programs}
-To help debugging concurrent programs, one can use a special primitive $\code{\_setProcessDebuggingName}$ that
+To help debugging concurrent programs, one can use a special primitive \textcode{\_setProcessDebuggingName} that
 takes a string argument and uses that string when reporting errors in the process. By design, there is no mechanism
 for reading the process name other than causing an error; this prevents using process names to leak information.
 
@@ -514,7 +514,7 @@ The implicit information flows are further propagated between processes.
 In the mailbox, each message is additionally tagged with a label that
 corresponds to the blocking level of the sender at the time when the message was sent.
 Troupe supports filtering messages based on these tags.
-In the following example, \code{rcvp} is a form of receive statement that selects messages
+In the following example, \textcode{rcvp} is a form of receive statement that selects messages
 where the pc-tag set to the provided label argument.
 
 \begin{lstlisting}
@@ -539,7 +539,7 @@ The sources of blocking are all synchronous operations such as receive statement
 Each thread has two runtime labels: the program counter label $\mathit{pc}$, and
 the blocking (termination) label $\mathit{block}$. It is always the case that
 $\mathit{pc}~\sqsubseteq~\mathit{block}$. To view the labels there is a
-helper internal function \code{debugpc ()}.
+helper internal function \textcode{debugpc ()}.
 \begin{lstlisting}
 (* ifc_debugpc.trp *)
 let val x = 1 raisedTo `{secret}`
@@ -550,7 +550,7 @@ in ()
 end
 \end{lstlisting}
 
-Each call to \code{debugpc} prints out the information about the process identifier,
+Each call to \textcode{debugpc} prints out the information about the process identifier,
 the pc label, and the blocking label.
 \begin{verbatim}
 PID:2dfe86ae-6bf3-4bfc-8a0c-200230e0296c@{}%{}     PC:{}       BL:{}
@@ -593,7 +593,7 @@ ${\ell_{\mathit{from}}} \sqsubseteq {  \ell_{\mathit{to}} \sqcup \ell_{\mathit{a
 
 
 \subsubsection{Example with attenuation of authority}
-Authority can be attenuated using the \code{attenuate} primitive.
+Authority can be attenuated using the \textcode{attenuate} primitive.
 
 \begin{lstlisting}
 (* ifc_attenuate.trp *)
@@ -604,7 +604,7 @@ attenuate (authority, `{alice}`)
 \end{verbatim}
 
 \subsubsection{Basic declassification}
-Troupe provides an explicit declassification command \code{declassify} that takes three arguments:
+Troupe provides an explicit declassification command \textcode{declassify} that takes three arguments:
 the expression to declassify, the authority, and the target label. For example, a basic declassification
 looks like this.
 \begin{lstlisting}
@@ -635,9 +635,9 @@ Runtime error in thread b469cbef-16d3-4fe8-ac1e-bd21c7e8950d@{}%{}
 \label{sec:pinidecl}
 The treatment of the blocking and termination labels is often restrictive in practice. To relax this,
 Troupe provides declassification of the blocking label. This is done using
-a variant of the \code{let} declaration that is called \code{let\ pini}.
+a variant of the \textcode{let} declaration that is called \textcode{let\ pini}.
 This statement requires the authority argument to declassify the blocking label
-after the sequence of the declarations (i.e., just before the \code{in} block).
+after the sequence of the declarations (i.e., just before the \textcode{in} block).
 These declarations are accessible in the body of the let statement at permissive
 levels.
 
@@ -662,12 +662,12 @@ PID:54bd148b-912e-4ae9-9787-aaf1166e9bc9@{}%{}     PC:{}       BL:{alice}
 PID:54bd148b-912e-4ae9-9787-aaf1166e9bc9@{}%{}     PC:{}       BL:{}
 >>> Main thread finished with value: 1@{}%{}
 \end{verbatim}
-Observe that in the above program, the level of the final value \code{z}
+Observe that in the above program, the level of the final value \textcode{z}
 is not tainted by the blocking label of the high conditional.
 
 
 \paragraph{Implementation note}
-The expression \code{let\ pini\ e0} $\mathit{decs}\ $\code{in\ e1\ end } is desugared by the compiler frontend into the form
+The expression \textcode{let\ pini\ e0} $\mathit{decs}\ $\textcode{in\ e1\ end } is desugared by the compiler frontend into the form
 \begin{lstlisting}
 let val tmp = pinipush e0
     $\mathit{decls}$
@@ -675,8 +675,8 @@ let val tmp = pinipush e0
 in e1
 end
 \end{lstlisting}
-Here, \code{tmp} is a fresh variable that is not part of the user program. Primitives \code{pinipush} and
-\code{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
+Here, \textcode{tmp} is a fresh variable that is not part of the user program. Primitives \textcode{pinipush} and
+\textcode{pinipop} dynamically scope the part of the execution for which the blocking label is declassified.
 
 
 
@@ -724,10 +724,10 @@ extra label as the \emph{presence label}.
 Receiving a value furthermore propagates the taint of the blocking level from the sender to the receiver via the presence label.
 In order to constrain a receive operation from an accidental raise of the blocking level, Troupe
 provides a general receive primitive in the form
-\code{rcv(lev1,lev2,hns)}. Here, \code{lev1} and \code{lev2}
-indicate the to and from-levels of the presence labels on the messages, and \code{hns} is the list of
+\textcode{rcv(lev1,lev2,hns)}. Here, \textcode{lev1} and \textcode{lev2}
+indicate the to and from-levels of the presence labels on the messages, and \textcode{hns} is the list of
 handlers as before.
-The \code{receive} operation we introduced earlier is equivalent to \code{rcvp}
+The \textcode{receive} operation we introduced earlier is equivalent to \textcode{rcvp}
 at the level of the current pc label.
 
 While such a form of general receive over an interval of levels is useful, it is also too powerful
@@ -741,12 +741,12 @@ in rcv ({}, {}, [hn x => x])
 end
 \end{lstlisting}
 
-Because the receive in the high branch is on an interval, the value of \code{x} may
+Because the receive in the high branch is on an interval, the value of \textcode{x} may
 depend on the secret value. In general, one can encode an entire secret in the structure
 of the mailbox. To prevent such programs, Troupe provides a special notion of \emph{mailbox clearance}
 that constrains receives on an interval. The mailbox clearance is a proxy for an authority.
-It can be raised using a dedicated command \code{raisembox (lev)} that returns a lowering
-capability and lowered with command \code{lowermbox(c, authority)}.
+It can be raised using a dedicated command \textcode{raisembox (lev)} that returns a lowering
+capability and lowered with command \textcode{lowermbox(c, authority)}.
 There are a few constraints related to the mailbox clearance.
 
 \begin{enumerate}
@@ -791,10 +791,10 @@ let val _ = register ("echo", self(), authority)
 in loop ()
 end
 \end{lstlisting}
-The \code{register} primitive is used to bound a process to a name. Because this is a
+The \textcode{register} primitive is used to bound a process to a name. Because this is a
 system-wide operation, it requires the top authority argument.  If we know
 the node identity and the name at which a process is bound, we can find the process at that node, using the
-\code{whereis} primitive:
+\textcode{whereis} primitive:
 
 \begin{lstlisting}
 let val echo =
@@ -807,7 +807,7 @@ end
 
 The complete echo example -- including the code above and
 the scripts for generating the identifiers is available at
-\code{\$TROUPE/examples/network/echo}.
+\textcode{\$TROUPE/examples/network/echo}.
 
 \subsubsection{Aliases}
 Aliases is a mechanism that allows us to avoid having hardcoded node identifiers in the source code.
@@ -833,7 +833,7 @@ trust level.
 If we know of a node identifier, we can spawn a thread on that node. Remote spawning is
 disabled by default, and needs the flag {\verb|--rspawn=true|} to be enabled.
 %
-To spawn a process on a remote node, the \code{spawn} takes a tuple of arguments,
+To spawn a process on a remote node, the \textcode{spawn} takes a tuple of arguments,
 where the first parameter is the string corresponding to the node identifier of the remote machine.
 
 
@@ -860,26 +860,26 @@ Authority values that are transferred across the nodes are subject to the same c
 
 \subsection{Built-in expressions}
 
-\subsubsection{\code{adv}}
+\subsubsection{\textcode{adv}}
 \begin{description}
     \item [Description] Simulate sending a value to adversary at level $\{\}$. This function is introduced as a
     pedagogical convenience as as it removes the necessity to set up a network process when explaining explicit and implicit information flows.
     \item [Arguments] A value to pass to the adversary.
     \item [Returns] Unit.
     \item [Failure behavior] Crashes the current process if the provided value and the blocking label are more restrictive than bottom.
-    \item [Example usage] \code{adv\ (42\ raisedTo\ \{alice\})}.
+    \item [Example usage] \textcode{adv\ (42\ raisedTo\ \{alice\})}.
 \end{description}
 
-\subsubsection{\code{attenuate}}
+\subsubsection{\textcode{attenuate}}
 \begin{description}
     \item [Description] Returns the attenuated authority
     \item [Arguments] A tuple with the authority to use and the target level of authority.
     \item [Returns] A value of authority type.
-    \item [Example usage] \code{attenuate ( authority, `\{alice\}` ) } Note that the above example will generate a runtime error.
+    \item [Example usage] \textcode{attenuate ( authority, `\{alice\}` ) } Note that the above example will generate a runtime error.
 \end{description}
 
 
-\subsubsection{\code{authority}}
+\subsubsection{\textcode{authority}}
 
 \begin{description}
     \item [Description] Return the authority argument implicitly provided to the top-level function of the main program.
@@ -887,10 +887,10 @@ The accessibility of this argument follows the standard lexical scoping rules. I
     \item [Arguments] None
 \end{description}
 
-\subsubsection{\code{declassify}}
+\subsubsection{\textcode{declassify}}
 \begin{description}
     \item [Description] Declassifies an expression.
-    \item [Arguments] A triple of the form $(\mathit{expr}, \code{authority}, \code{\ell} )$, where $\mathit{expr}$ is the expression to be declassified, $\code{authority}$ is the authority to use for declassification, and \code{\ell} is the target level of declassification.
+    \item [Arguments] A triple of the form $(\mathit{expr}, \code{authority}, \code{\ell} )$, where $\mathit{expr}$ is the expression to be declassified, \textcode{authority} is the authority to use for declassification, and \code{\ell} is the target level of declassification.
     \item [Returns] The original value declassified to the target level if there is sufficient authority.
     \item [Failure behavior] Crashes if the provided authority is insufficient for the declassification.
     \item [Example usage]
@@ -910,16 +910,16 @@ end
 \end{description}
 
 
-\subsubsection{\code{exit}}
+\subsubsection{\textcode{exit}}
 \begin{description}
     \item [Description] Exits the Troupe runtime.
-    \item [Arguments] A tuple \code{(authority, exitCode)}.
+    \item [Arguments] A tuple \textcode{(authority, exitCode)}.
     \item [Returns] Nothing
     \item [Example usage] \textcode{exit(authority, 0)}
 \end{description}
 
 
-\subsubsection{\code{getTime}}
+\subsubsection{\textcode{getTime}}
 \begin{description}
     \item [Description] Obtains current Unix timestmap
     \item [Arguments] Unit.
@@ -928,7 +928,7 @@ end
 \end{description}
 
 
-\subsubsection{\code{inputLine}}
+\subsubsection{\textcode{inputLine}}
 \begin{description}
 \item[Description] Reads a  line from the console.
 \item[Arguments] Unit.
@@ -936,13 +936,13 @@ end
 \item[Blocking behavior] Synchronous. Observe that the blocking label
 is raised to top after this operation, because the user providing the
 input is assumed to operate at level top. To prevent this from happening,
-the blocking label can be declassified using the \code{let\ pini} constructs.
-See also library functions \code{inputLineWithPini} and \code{inputLineWithPini}
-from \code{stdio} library.
+the blocking label can be declassified using the \textcode{let\ pini} constructs.
+See also library functions \textcode{inputLineWithPini} and \textcode{inputLineWithPini}
+from \textcode{stdio} library.
 \end{description}
 
 
-\subsubsection{\code{lowermbox}}
+\subsubsection{\textcode{lowermbox}}
 \begin{description}
     \item [Description] Lowers the clearance of the current process' mailbox.
     \item [Arguments] A tuple of the raise capability and authority
@@ -951,7 +951,7 @@ from \code{stdio} library.
 \end{description}
 
 
-\subsubsection{\code{mkuuid}}
+\subsubsection{\textcode{mkuuid}}
 \begin{description}
     \item [Description] Generates a random string.
     \item [Arguments] Unit.
@@ -960,7 +960,7 @@ from \code{stdio} library.
 \end{description}
 
 
-\subsubsection{\code{node}}
+\subsubsection{\textcode{node}}
 \begin{description}
     \item [Description] Returns node identifier of a process.
     \item [Arguments] Process identifier.
@@ -970,69 +970,69 @@ from \code{stdio} library.
 
 
 
-\subsubsection{\code{pinipop}}
+\subsubsection{\textcode{pinipop}}
 \begin{description}
     \item [Description] Pop an authority value from the \emph{pini} stack, and declassify the current blocking level.
-    \item [Arguments] A string generated by \code{pinipush}
+    \item [Arguments] A string generated by \textcode{pinipush}
     \item [Returns] Unit.
     \item [Failure behavior] Crashes if the popped authority is insufficient for the declassification of the blocking level,
-or if the provided capability does not match to the last capability generated by the \code{pinipush}.
+or if the provided capability does not match to the last capability generated by the \textcode{pinipush}.
     \item [Example usage] \textcode{pinipop ()}
 \end{description}
 
-\subsubsection{\code{pinipush}}
+\subsubsection{\textcode{pinipush}}
 \begin{description}
     \item [Description] Pushes authority value onto the \emph{pini} stack.
     \item [Arguments] A value of type authority.
-    \item [Returns] A string capability to be passed as the argument to \code{pinipop}
+    \item [Returns] A string capability to be passed as the argument to \textcode{pinipop}
     \item [Example usage] \textcode{pinipush (authority)}
 \end{description}
 
 
-\subsubsection{\code{pinipushto}}
+\subsubsection{\textcode{pinipushto}}
 \begin{description}
     \item [Description] Pushes authority value onto the \emph{pini} stack,
    with explicit blocking level.
     \item [Arguments] A tuple: a value of type authority, and a level.
-    \item [Returns] A string capability to be passed as the argument to \code{pinipop}
+    \item [Returns] A string capability to be passed as the argument to \textcode{pinipop}
     \item [Failure behavior] Crashes if the current blocking level does not flow to the level argument.
     \item [Example usage] \textcode{pinipushto (authority, `\{bob\}`)}
 \end{description}
 
 
-\subsubsection{\code{print}}
+\subsubsection{\textcode{print}}
 \begin{description}
     \item [Description] Prints a value on the console omitting its security types.
     \item [Arguments] A value of any type.
     \item [Returns] Unit.
-    \item [Example usage] \code{print\ "Hello, world"}
+    \item [Example usage] \textcode{print\ "Hello, world"}
 \end{description}
 
 
-\subsubsection{\code{printWithLabels}}
+\subsubsection{\textcode{printWithLabels}}
 \begin{description}
     \item [Description] Prints a value on the console including its security types.
     \item [Arguments] A value of any type.
     \item [Returns] Unit.
-    \item [Example usage] \code{printWithLabels\ "Hello, world"}
+    \item [Example usage] \textcode{printWithLabels\ "Hello, world"}
 \end{description}
 
 
-\subsubsection{\code{raiseTrust}}
+\subsubsection{\textcode{raiseTrust}}
 \begin{description}
     \item [Description] Dynamically raise the trust level of a node.
     \item [Arguments] A triple of a node identifier, root-level authority, and the intended trust level.
     \item [Returns] Unit.
     \item [Failure behavior]. Fails if the argument type is invalid. Fails if the authority argument is not top.
  Fails if the blocking level is not $\bot$.
-    \item [Example usage] $\code{raiseTrust("@alicescomputer", authority, `\{alice\}`)}$
+    \item [Example usage] \textcode{raiseTrust("@alicescomputer", authority, `\{alice\}`)}
 \end{description}
 Note that the top-level authority is required because this is a privileged operation with system-wide consequences.
 
 
 
 
-\subsubsection{\code{raisembox}}
+\subsubsection{\textcode{raisembox}}
 \begin{description}
     \item [Description] Raises the clearance of the current process' mailbox.
     \item [Arguments] A security level
@@ -1041,26 +1041,26 @@ Note that the top-level authority is required because this is a privileged opera
 \end{description}
 
 
-\subsubsection{\code{random}}
+\subsubsection{\textcode{random}}
 \begin{description}
     \item [Description] Generates a random number between 0 (inclusive) and 1.
     \item [Arguments] Unit.
     \item [Returns] Number.
-    \item [Example usage] \code{random()}
+    \item [Example usage] \textcode{random()}
 \end{description}
 
 
 
 
 
-\subsubsection{\code{receive}}
+\subsubsection{\textcode{receive}}
 \begin{description}
     \item [Description] Picks a message from the mailbox.
     \item [Arguments] A list of \emph{handler functions} (cf. Section~\ref{sec:handlers}).
     \item [Returns] The value returned by the body of the matching handler.
 \end{description}
 
-\subsubsection{\code{register}}
+\subsubsection{\textcode{register}}
 \begin{description}
     \item [Description] Registers the process under a name.
     \item [Arguments] A tuple of the form $(\mathit{str}, \mathit{pid}, \mathit{authority})$, where $\mathit{str}$ is the name under
@@ -1075,7 +1075,7 @@ $\mathit{authority}$ is the top authority value.
 Note that this is a privileged operation with system-wide consequences.
 
 
-\subsubsection{\code{rcv}}
+\subsubsection{\textcode{rcv}}
 \begin{description}
     \item [Description] Picks a message from the mailbox with pre-filtering the levels of the messages.
     \item [Arguments] A triple of the form $(\mathit{hs}, \ell_{\mathit{lo}}, \ell_{\mathit{hi}}) $ where $\mathit{hs}$ is the list of handlers, $\ell_{\mathit{lo}}$ is the lower bound on the \emph{sender-level} of the messages, and
@@ -1084,11 +1084,11 @@ $\ell_{\mathit{hi}}$ is the upper bound on the \emph{sender-level} of the messag
 \end{description}
 
 
-\subsubsection{\code{sandbox}}
+\subsubsection{\textcode{sandbox}}
 \begin{description}
     \item [Description] Execute a function in a sandbox for a fixed duration of time.
     \item [Arguments] A tuple of the form $(\mathit{t}, f)$, where $t$ is the timeout duration in milliseconds, and $f$ is the function
-of the form $\code{fn () => e}$ that is executed in the sandbox. A sandboxed process is heavily restricted: it cannot perform
+of the form \textcode{fn () => e} that is executed in the sandbox. A sandboxed process is heavily restricted: it cannot perform
 any I/O operations or spawn new threads.
     \item [Returns] A tuple of the form $(\mathit{ok}, \mathit{val})$ where $\mathit{ok}$ is either true or false, with true meaning that the sandbox execution has completed successfully, and false meaning that the sandbox has exhibited a crash or timeout. When the evaluation succeeds, value $\mathit{val}$ carries the return value of the sandboxed function; it is a unit value otherwise.
     \item [Blocking behavior] Synchronous. The execution of the process always takes at least duration $\mathit{t}$, even if the sandboxed process successfully finishes before that.
@@ -1098,7 +1098,7 @@ any I/O operations or spawn new threads.
 \end{description}
 
 
-\subsubsection{\code{self}}
+\subsubsection{\textcode{self}}
 \begin{description}
     \item [Description] Returns the current process identifier.
     \item [Arguments] Unit.
@@ -1107,7 +1107,7 @@ any I/O operations or spawn new threads.
 \end{description}
 
 
-\subsubsection{\code{send}}
+\subsubsection{\textcode{send}}
 \begin{description}
     \item [Description] Sends a message to a process.
     \item [Arguments] A tuple of the form $(\mathit{pid}, v)$ where the $\mathit{pid}$ is the process identifier
@@ -1120,7 +1120,7 @@ enforcing runtime is the same.
 \end{description}
 
 
-\subsubsection{\code{\_setProcessDebuggingName}}
+\subsubsection{\textcode{\_setProcessDebuggingName}}
 \begin{description}
     \item [Description] Sets the process name that is used in debugging.
     \item [Argument] A string value.
@@ -1130,39 +1130,39 @@ enforcing runtime is the same.
 
 
 
-\subsubsection{\code{sleep}}
+\subsubsection{\textcode{sleep}}
 
 \begin{description}
     \item [Description] Suspends the execution of the current thread for a specified duration of time.
     \item [Arguments] One argument of type number that specifies the sleep time in milliseconds.
     \item [Returns] Unit.
-    \item [Example usage] \code{sleep\ 100}
+    \item [Example usage] \textcode{sleep\ 100}
 \end{description}
 
 
 
-\subsubsection{\code{spawn}}
+\subsubsection{\textcode{spawn}}
 \begin{description}
     \item [Description] Spawns a new process locally or remotely.
-    \item [Arguments] Either a tuple of the form \code{ (nodeid, f )} of a node identifier (as a string) and a function
+    \item [Arguments] Either a tuple of the form \textcode{ (nodeid, f )} of a node identifier (as a string) and a function
 or one argument of the type function.
-Note that the function must be of the form \code{fn () => e}, i.e., it must take just one unit argument.
+Note that the function must be of the form \textcode{fn () => e}, i.e., it must take just one unit argument.
     \item [Returns] The process identifier of the newly spawned process.
     \item [Blocking behavior] Blocks until the new process is created.
     \item [Example usage] \textcode{ print (self (), spawn(fn () => print\ (self()))) }
 
 \end{description}
 
-\subsubsection{\code{raisedTo}}
+\subsubsection{\textcode{raisedTo}}
 \begin{description}
     \item [Description] Raises the level of a value. Observe that this expression uses the infix syntax.
     \item [Arguments] An expression of any type and a level.
     \item [Returns] The same expression with its level raised to the provided level.
-    \item [Example usage] $\code{42\ raisedTo\ \{alice\}}$
+    \item [Example usage] \textcode{42\ raisedTo\ \{alice\}}
 \end{description}
 
 
-\subsubsection{\code{whereis}}
+\subsubsection{\textcode{whereis}}
 
 \begin{description}
     \item [Description] Looks up a registered process on a remote node.
@@ -1193,12 +1193,12 @@ This library contains some useful functions for \emph{deep declassification} of 
 declassifying both an expression and blocking level at the same time.
 
 \begin{itemize}
-\item {\code{declassify\_with\_block(v, auth, lev)}} takes three arguments -- the value to declassify,
+\item {\textcode{declassify\_with\_block(v, auth, lev)}} takes three arguments -- the value to declassify,
 the authority, and the target level -- just like in normal declassification -- and declassifies
 both the blocking label and the value.
 
 
-\item {\code{(declassifydeep(v, auth, lev)}} is like abov, but additionally
+\item {\textcode{(declassifydeep(v, auth, lev)}} is like abov, but additionally
 further declassifies nested lists and tuples up to size nine.
 
 
@@ -1206,9 +1206,9 @@ further declassifies nested lists and tuples up to size nine.
 
 \subsection{Library {\tt lists}}
 
-This library contains standard list functions, such as \code{map}, \code{mapi}, \code{foldi},
-\code{range}, \code{range}, \code{reverse}, \code{lookup}, \code{elem}, \code{length}, \code{append},
-and \code{partition}.
+This library contains standard list functions, such as \textcode{map}, \textcode{mapi}, \textcode{foldi},
+\textcode{range}, \textcode{range}, \textcode{reverse}, \textcode{lookup}, \textcode{elem}, \textcode{length}, \textcode{append},
+and \textcode{partition}.
 
 
 \clearpage
