@@ -684,7 +684,6 @@ Here, \code{tmp} is a fresh variable that is not part of the user program. Primi
 Type labels of values created in branches are also tainted by the pc-label.
 Operations that check the type label, e.g., arithmetics or pattern
 matching, use the information in the type label to appropriately taint the blocking level.
-the value.
 \begin{lstlisting}
 (* ifc_type_labels.trp *)
 let val x = 100 raisedTo {alice}
